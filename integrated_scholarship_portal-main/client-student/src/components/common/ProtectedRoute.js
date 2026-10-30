@@ -1,0 +1,53 @@
+import React from 'react';
+import { Navigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { ShieldAlert, ArrowLeft } from 'lucide-react';
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user, loading, isAuthenticated } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3 text-muted fw-semibold">Authenticating Student Access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/student/login" replace />;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0) {
+    const hasRole = allowedRoles.includes(user.role);
+    if (!hasRole) {
+      return (
+        <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light p-4">
+          <div className="custom-card p-5 text-center shadow-lg" style={{ maxWidth: '540px' }}>
+            <div className="d-inline-flex p-3 rounded-circle bg-danger-subtle text-danger mb-4">
+              <ShieldAlert size={48} />
+            </div>
+            <h3 className="fw-bold text-dark mb-2">403 - Access Forbidden</h3>
+            <p className="text-muted mb-4">
+              You do not have permission to access this student portal page.
+            </p>
+            <div className="d-flex justify-content-center gap-3">
+              <Link to="/student/dashboard" className="btn btn-primary d-inline-flex align-items-center gap-2">
+                <ArrowLeft size={16} /> Return to Student Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;
